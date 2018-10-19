@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>JEELIZ EXPOSURE CONTROLLER BASIC DEMO</title>
+
+		<!-- LIB SCRIPT: -->
+		<script src="../../JeelizExposureController.js"></script>
+
+		<!-- WEBGL HELPER: -->
+		<script src="../../helpers/JeelizExposureWebGLHelper.js"></script>
+
+		<!-- GETUSERMEDIA HELPER: -->
+		<script src="../../helpers/JeelizMediaStreamAPIHelper.js"></script>
+
+		<!-- FORK ME ON GITHUB BANNER: -->
+		<script src="../appearance/widget.js"></script>
+
+		<!-- main script: -->
+		<script src="main.js"></script>	
+
+		<style type="text/css">
+			body {
+				margin:0px;
+				text-align: center;
+				background-color: silver;
+			}
+			#videoContainer {
+				position: relative;
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			#webglCanvas{
+				display: none;
+				border: 1px solid red;
+				margin-bottom: 24px;
+				position: inline-block;
+			}
+			#areaMarker{
+				border: 2px solid lime;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 10px;
+				height: 10px;
+			}
+		</style>	
+	</head>
+
+	<body onload="main()">
+		<div id="videoContainer">
+			<video id="webcamVideo"></video>
+			<div id="areaMarker"></div>
+		</div><br/>
+		<canvas id="webglCanvas"></canvas>
+	</body>
+
+</html> 
