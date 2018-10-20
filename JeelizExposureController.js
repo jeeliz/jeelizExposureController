@@ -289,9 +289,10 @@ const JeelizExposureController=(function(){
 		  * <float> h: height of the area, in [0,1] (1-> full height)
 		<float> adjustedLightness: target lightness in [0,1]. Advised: 0.5
 		<float> epsilon: target precision. Advised: 0.05
+		<float> relaxationFactor: factor of relaxation, in [0,1]. Advised: 0.1
 		<function> callback: function to launch as soon as the lightness is adjusted
 		*/
-		'adjust': function(glTexture, area, adjustedLightness, epsilon, callback){
+		'adjust': function(glTexture, area, adjustedLightness, epsilon, relaxationFactor, callback){
 			if (_state!==_states.idle){
 				callback(false);
 				return;
@@ -324,19 +325,18 @@ const JeelizExposureController=(function(){
     		}
 
     		//if dLightness>0, we should lower the exposure //and conversely
-    		_cameraExposureNormalized-=dLightness*0.2;
+    		_cameraExposureNormalized-=dLightness*relaxationFactor;
 
     		//clamp the _cameraExposureNormalized
     		_cameraExposureNormalized=Math.max(_cameraExposureNormalized, 0.01);
 			_cameraExposureNormalized=Math.min(_cameraExposureNormalized, 1.0);
 
-			console.log(_cameraExposureNormalized, lightness);
+			//console.log(_cameraExposureNormalized, lightness);
 
 			that['set_manualExposure'](_cameraExposureNormalized, function(isSuccess){
 				_state=_states.idle;
 				callback(isSuccess)
 			});
-
 		},
 
 		'toggle_auto': function(callback){

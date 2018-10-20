@@ -97,10 +97,10 @@ const JeelizExposureWebglHelper=(function(){
 			return true;
 		}, //end init
 
-		'adjust': function(area, adjustedLightness, epsilon, callback){
+		'adjust': function(area, adjustedLightness, epsilon, relaxationFactor, callback){
 			bind_FBO();
 			update_videoTexture();
-			JeelizExposureController['adjust'](_glTextureVideo, area, adjustedLightness, epsilon, callback);
+			JeelizExposureController['adjust'](_glTextureVideo, area, adjustedLightness, epsilon, relaxationFactor, callback);
 		}
 	};
 	return that;

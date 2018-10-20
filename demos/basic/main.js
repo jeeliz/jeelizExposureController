@@ -10,8 +10,9 @@ const SETTINGS={
 		w: 0.25,
 		h: 0.25
 	},
-	lightness: 0.5, //adjust lightness, between 0 and 1
+	lightness: 0.4, //adjust lightness, between 0 and 1
 	epsilon: 0.05,  //tolerancy for lightness target
+	relaxationFactor: 0.05, //relaxation Factor
 	delay: 50,    //delay between 2 adjustements in ms
 }
 
@@ -76,7 +77,9 @@ function adjust(){
 	//console.log('INFO in main.js: adjust()');
 	JeelizExposureWebglHelper.adjust(
 			SETTINGS.area,
-			SETTINGS.lightness, SETTINGS.epsilon,
+			SETTINGS.lightness,
+			SETTINGS.epsilon,
+			SETTINGS.relaxationFactor,
 			function(isSuccess){
 				if (isSuccess){
 					console.log('Exposure is fine now :)');
