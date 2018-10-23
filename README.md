@@ -19,9 +19,9 @@ Included in this repository:
 
 * `/demos/basic`: the exposure is tuned according to an area at the center of the video. It should be served with an HTTPS static server.
 
-Other demonstration:
+Other demonstrations:
 
-* *Camera auto exposure adjuster*: Detect the user face and adjust the exposure of the camera according to this detection. It is useful when there is a strong backlight or if the ambient luminosity is low. The demonstration is available on [Jeeliz GlanceTracker Github repository](https://github.com/jeeliz/jeelizGlanceTracker). You can check the live demo here: [jeeliz.com/demos/glanceTracker/demos/cameraExposureAdjuster/](https://jeeliz.com/demos/glanceTracker/demos/cameraExposureAdjuster/).
+* *Camera auto exposure adjuster*: The user's face is detected and tracked, then the exposure of the camera is adjusted according to the face lightness. It is useful when there is a strong backlight or if the ambient luminosity is low. The demonstration is available on [Jeeliz GlanceTracker Github repository](https://github.com/jeeliz/jeelizGlanceTracker). You can check the live demo here: [jeeliz.com/demos/glanceTracker/demos/cameraExposureAdjuster/](https://jeeliz.com/demos/glanceTracker/demos/cameraExposureAdjuster/).
 
 If it does not work on your computer, this is a video screenshot:
 
