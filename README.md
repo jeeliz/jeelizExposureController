@@ -13,6 +13,34 @@
 * `./JeelizExposureController.js`: main script of the library
 
 
+## Demonstrations
+
+Included in this repository:
+
+* `/demos/basic`: the exposure is tuned according to an area at the center of the video. It should be served with an HTTPS static server.
+
+Other demonstration:
+
+* *Camera auto exposure adjuster*: Detect the user face and adjust the exposure of the camera according to this detection. It is useful when there is a strong backlight or if the ambient luminosity is low. The demonstration is available on [Jeeliz GlanceTracker Github repository](https://github.com/jeeliz/jeelizGlanceTracker). You can check the live demo here: [jeeliz.com/demos/glanceTracker/demos/cameraExposureAdjuster/](https://jeeliz.com/demos/glanceTracker/demos/cameraExposureAdjuster/).
+
+If it does not work on your computer, this is a video screenshot:
+
+<p align="center">
+<a href='https://www.youtube.com/watch?v=G-Q4kRqxsTU'><img src='https://img.youtube.com/vi/G-Q4kRqxsTU/0.jpg'></a>
+</p>
+
+You can subscribe to the [Jeeliz Youtube channel](https://www.youtube.com/channel/UC3XmXH1T3d1XFyOhrRiiUeA) or to the [@StartupJeeliz Twitter account](https://twitter.com/StartupJeeliz) to be kept informed of our cutting edge developments.
+
+
+## Compatibility
+To run this library, you need to things:
+
+* A browser implementing *Image Capture API*. The compatibility tables are here: [developer.mozilla.org/en-US/docs/Web/API/ImageCapture](https://developer.mozilla.org/en-US/docs/Web/API/ImageCapture#Browser_compatibility),
+
+* A webcam which driver allows to adjust the exposure (not a Mac).
+
+This API is still very experimental and its specification may change before it becomes implemented on Firefox and Edge, then Safari.
+
 
 ## License
 The MIT License (MIT)
