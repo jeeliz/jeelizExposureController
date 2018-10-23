@@ -12,7 +12,7 @@ const SETTINGS={
 	},
 	lightness: 0.4, //adjust lightness, between 0 and 1
 	epsilon: 0.05,  //tolerancy for lightness target
-	relaxationFactor: 0.05, //relaxation Factor
+	relaxationFactor: 0.02, //relaxation Factor
 	delay: 50,    //delay between 2 adjustements in ms
 }
 

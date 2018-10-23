@@ -46,7 +46,7 @@ var JeelizMediaStreamAPIHelper={
     },
 
     check_isIOS: function(){ //from https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
-        var iOS = /iPad|iPhone|iPod/.test(navigator['userAgent']) && !window['MSStream'];
+        const iOS = /iPad|iPhone|iPod/.test(navigator['userAgent']) && !window['MSStream'];
         return iOS;
     },
 
@@ -292,25 +292,42 @@ var JeelizMediaStreamAPIHelper={
 
     //get raw video stream (called by get())
     get_raw: function(video, callbackSuccess, callbackError, constraints){
-        var promise=navigator['mediaDevices'].getUserMedia(constraints).then(
+        let isErrorRaw=false;
+
+        const on_errorRaw=function(errCode){
+            if (isErrorRaw){
+                return;
+            }
+            isErrorRaw=true;
+            callbackError(errCode);
+        }
+        const on_successRaw=function(video, localMediaStream, optionsReturned){
+            if (isErrorRaw){
+                                console.log('WARNING in JeelizMediaStreamAPIHelper - get_raw(): cannot launch callbackSuccess because an error was thrown');
+                console.log(JSON.stringify(constraints.video));
+                                return;
+            }
+                        console.log('INFO in JeelizMediaStreamAPIHelper - get_raw(): callbackSuccess called with constraints=');
+            console.log(JSON.stringify(constraints.video));
+                        callbackSuccess(video, localMediaStream, optionsReturned);
+        }
+
+        const promise=navigator['mediaDevices'].getUserMedia(constraints).then(
             // success callback
             function(localMediaStream) {
-                                console.log('INFO in JeelizMediaStreamAPIHelper - get_raw() : videoStream got');
+                                console.log('INFO in JeelizMediaStreamAPIHelper - get_raw(): videoStream got');
                 
-
                 function callSuccessIfPlaying(){
                     setTimeout(function(){
                         if (video['currentTime']){
                             var vw=video['videoWidth'], vh=video['videoHeight'];
                             if (vw===0 || vh===0) { //against a firefox bug
-                                callbackError('VIDEO_NULLSIZE');
+                                on_errorRaw('VIDEO_NULLSIZE');
                                 return;
                             }
-                            //to avoid video freezing on Safari :
-                            var vw=video['videoWidth'], vh=video['videoHeight'];
+                            //to avoid video freezing on Safari:
                             if (vw) video['style']['width']=vw.toString()+'px';
                             if (vh) video['style']['height']=vh.toString()+'px';
-
 
                             const optionsReturned={
                                 capabilities: null,
@@ -332,31 +349,41 @@ var JeelizMediaStreamAPIHelper={
                             if (JeelizMediaStreamAPIHelper.check_isIOS()){
                             	                            	console.log('WARNING in JeelizMediaStreamAPIHelper - IOS device detected, add the video element to the DOM.');
                             	
-                                document.body.appendChild(video);
-                                JeelizMediaStreamAPIHelper.mute(video);
+                                if (!video['parentNode'] || video['parentNode']===null){
+                                    //append the video to the DOM and makes it invisible
+                                    //if it is not already into the dom
+                                    document['body']['appendChild'](video);
+                                    JeelizMediaStreamAPIHelper.mute(video);
 
-                                callbackSuccess(video, localMediaStream, optionsReturned);
-                                setTimeout(function(){
-                                  video['style']['transform']='scale(0.0001,0.0001)';
-                                  video['style']['position']='fixed';
-                                  video['style']['bottom']='0px';
-                                  video['style']['right']='0px';
-                                  JeelizMediaStreamAPIHelper.mute(video);
+                                    on_successRaw(video, localMediaStream, optionsReturned);
+                                    setTimeout(function(){
+                                      video['style']['transform']='scale(0.0001,0.0001)';
+                                      video['style']['position']='fixed';
+                                      video['style']['bottom']='0px';
+                                      video['style']['right']='0px';
+                                      JeelizMediaStreamAPIHelper.mute(video);
 
-                                  //from https://github.com/jeeliz/jeelizFaceFilter/issues/45
-                                   setTimeout(function () {
-						               video['play']();
-						           }, 100);
+                                      //from https://github.com/jeeliz/jeelizFaceFilter/issues/45
+                                       setTimeout(function () {
+    						               video['play']();
+    						           }, 100);
 
-                                }, 80);
-                            } else {                      
-                                callbackSuccess(video, localMediaStream, optionsReturned);
+                                    }, 80);
+                                } else {
+                                    on_successRaw(video, localMediaStream, optionsReturned);
+                                    setTimeout(function () {
+                                       video['play']();
+                                    }, 100);
+                                }
+                            } else { //not IOS  
+                                on_successRaw(video, localMediaStream, optionsReturned);
                             }
-                        } else {
-                            callbackError('VIDEO_NOTSTARTED');
-                        }
-                    }, 200); //check if the video has really started
-                }
+                        } else { //video.currentTime is null
+                            on_errorRaw('VIDEO_NOTSTARTED');
+                                                        console.log('INFO in callSuccessIfPlaying(): video.currentTime=', video['currentTime']);
+                                                    }
+                    }, 700); //check if the video has really started. 500ms -> too small
+                } //end callSuccessIfPlaying()
 
                 function onMetaDataLoaded() {
                                         console.log('INFO in JeelizMediaStreamAPIHelper - get_raw() : video.onloadedmetadata dispatched');
@@ -372,7 +399,7 @@ var JeelizMediaStreamAPIHelper={
                                                 callSuccessIfPlaying();
                       }).catch(function(error) {
                                                 console.log('ERROR in JeelizMediaStreamAPIHelper - get_raw() : playPromise failed - ', error);
-                                                callbackError('VIDEO_PLAYPROMISEREJECTED');
+                                                on_errorRaw('VIDEO_PLAYPROMISEREJECTED');
                       });
                     } //end if playPromise
                 } //end onMetaDataLoaded()
@@ -387,9 +414,10 @@ var JeelizMediaStreamAPIHelper={
 
                 JeelizMediaStreamAPIHelper.mute(video);
                 video.addEventListener('loadeddata', onMetaDataLoaded, false);
-
             } //end promise then success callback
-        ).catch(callbackError);
+        ).catch(function(err){
+            on_errorRaw(err);
+        });
 
         
 
@@ -460,7 +488,7 @@ var JeelizMediaStreamAPIHelper={
             
 
         JeelizMediaStreamAPIHelper.get_raw(video, callbackSuccess, function(err){
-                        console.log('WARNING in JeelizMediaStreamAPIHelper() - get() : cannot request video with this constraints. Downgrade constraints');
+                        console.log('WARNING in JeelizMediaStreamAPIHelper() - get() : cannot request video with this constraints. Downgrade constraints. err=', err);
                         var fallbackConstraints=JeelizMediaStreamAPIHelper.create_fallbackConstraints(mandatory);
 
             var rec_tryConstraint=function(remainingConstraints){

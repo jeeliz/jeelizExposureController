@@ -84,9 +84,9 @@ const JeelizExposureWebglHelper=(function(){
 
 			//initialize JeelizExposureController
 			JeelizExposureController['init']({
-				gl: _gl,
-				video: _domVideo,
-				callbackReady: function(errCode){
+				'GL': _gl,
+				'videoElement': _domVideo,
+				'callbackReady': function(errCode){
 					if (!errCode){
 						set_attribPointer();
 					}

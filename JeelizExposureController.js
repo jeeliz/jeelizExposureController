@@ -45,6 +45,9 @@ const JeelizExposureController=(function(){
 	let _cameraExposureNormalized;
 
 	const _readBufferPixel=new Uint8Array(4);
+	const _fullArea={
+		x:0,y:0,w:1,h:1
+	};
 
 
 	//private functions
@@ -146,6 +149,11 @@ const JeelizExposureController=(function(){
 	}
 
 	function set_cameraSetting(setting, value, callback){
+		if (_cameraSettings[setting]===value){ //no need to change camera settings :)
+			callback(true);
+			return;
+		}
+
 		const appliedSetting={};
 		appliedSetting[setting]=value;
 
@@ -156,7 +164,7 @@ const JeelizExposureController=(function(){
 				update_cameraSettings();
 				callback( _cameraSettings[setting]===value ); //check that the value has really changed
 			}).catch(function(error){
-				console.log('ERROR in JeelizExposureController - cannot apply', settings, '=', value);
+				console.log('ERROR in JeelizExposureController - cannot apply', setting, '=', value, ': ', error);
 				update_cameraSettings();
 				callback(false);
 			});
@@ -169,6 +177,9 @@ const JeelizExposureController=(function(){
 		}
 
 		const modeCap=(mode==='AUTO')?'continuous':'manual';
+		if (mode==='AUTO'){
+			_cameraExposureNormalized=0.2;
+		}
 		set_cameraSetting('exposureMode', modeCap, callback);
 	}
 
@@ -201,7 +212,7 @@ const JeelizExposureController=(function(){
 	const that={
 		/*
 		<dict> spec with properties:
-		  * <WebGLRenderingContext> gl
+		  * <WebGLRenderingContext> GL
 		  * <int> subsampleSize: size of the subsample area. should be PoT. default: 32
 		  * <videoElement> video
 		  * <function> callbackReady: function to launch when the library is ready.
@@ -221,8 +232,8 @@ const JeelizExposureController=(function(){
 				_subsampleSize=spec['subsampleSize'];
 			}
 			_state=_states.loading;
-			_video=spec['video'];
-			_gl=spec['gl'];
+			_video=spec['videoElement'];
+			_gl=spec['GL'];
 			
 
 			//get the video track and init imageCapture:
@@ -297,11 +308,14 @@ const JeelizExposureController=(function(){
 				callback(false);
 				return;
 			}
+			
 			_state=_states.busy;
 
 			//render cropped glTexture on _glVideoCropTexture:
 			_gl.useProgram(_glCropShp);
 			_gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, _glVideoCropTexture, 0);
+			_gl.activeTexture(_gl.TEXTURE0);
+			_gl.bindTexture(_gl.TEXTURE_2D, glTexture);
 			_gl.viewport(0,0,_subsampleSize,_subsampleSize);
 			_gl.uniform4f(_glCropShpUniformCropArea, area.x, area.y, area.w, area.h);
 			_gl.drawElements(_gl.TRIANGLES, 3, _gl.UNSIGNED_SHORT, 0); //fill viewport
@@ -313,17 +327,20 @@ const JeelizExposureController=(function(){
 			_gl.generateMipmap(_gl.TEXTURE_2D);
 			_gl.viewport(0,0,1,1);
 			_gl.drawElements(_gl.TRIANGLES, 3, _gl.UNSIGNED_SHORT, 0);
-    	
+    		
     		//read rendering
     		_gl.readPixels(0,0, 1,1, _gl.RGBA, _gl.UNSIGNED_BYTE, _readBufferPixel);
     		const lightness=(_readBufferPixel[0]+_readBufferPixel[1]+_readBufferPixel[2])/(255*3.0);
+    		//console.log(lightness);
     		const dLightness=lightness-adjustedLightness; //error
     		if (Math.abs(dLightness)<epsilon){
     			_state=_states.idle;
     			callback(true);
+    			//setTimeout(callback.bind(null, true), 1000);
     			return;
     		}
 
+    		
     		//if dLightness>0, we should lower the exposure //and conversely
     		_cameraExposureNormalized-=dLightness*relaxationFactor;
 
@@ -335,8 +352,20 @@ const JeelizExposureController=(function(){
 
 			that['set_manualExposure'](_cameraExposureNormalized, function(isSuccess){
 				_state=_states.idle;
-				callback(isSuccess)
+				callback(false);
+				//setTimeout(callback.bind(null, false), 1000);
+    			
 			});
+
+			//for debug: draw input texture in fullscreen:
+			//_gl.viewport(0,0,_gl['canvas']['width'],_gl['canvas']['height']);
+			//_gl.drawElements(_gl.TRIANGLES, 3, _gl.UNSIGNED_SHORT, 0);	
+		},
+
+		//same than 'adjust' except that the adjustment area is the whole glTexture.
+		//the glTexture needs to be in GL.NEAREST_MIPMAP_LINEAR for GL.MIN_FILTER
+		'adjust_full': function(glTexture, adjustedLightness, epsilon, relaxationFactor, callback){
+			that['adjust'](glTexture, _fullArea, adjustedLightness, epsilon, relaxationFactor, callback);
 		},
 
 		'toggle_auto': function(callback){
