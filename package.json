@@ -1,0 +1,22 @@
+{
+  "name": "jeelizexposurecontroller",
+  "version": "1.0.0",
+  "description": "set the camera exposure so that a specific area of the video has a set average color lightness",
+  "main": "JeelizExposureController.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeeliz/jeelizExposureController.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jeeliz/jeelizExposureController/issues"
+  },
+  "homepage": "https://github.com/jeeliz/jeelizExposureController#readme",
+  "dependencies": {
+    "@types/w3c-image-capture": "^1.0.7"
+  }
+}
