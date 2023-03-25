@@ -68,15 +68,15 @@ const _fullArea: IArea = {
 // private functions:
 //BEGIN WEBGL HELPERS
 
-function create_glTexture(): void {
+const create_glTexture = (): void => {
     _glVideoCropTexture = _gl.createTexture();
     _gl.bindTexture(_gl.TEXTURE_2D, _glVideoCropTexture);
     _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _subsampleSize, _subsampleSize, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, null as ArrayBufferView | null);
     _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
     _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST_MIPMAP_LINEAR);
-}
+};
 
-function build_shp(vertexSource: string, fragmentSource: string): WebGLProgram {
+const build_shp = (vertexSource: string, fragmentSource: string): WebGLProgram => {
     const GLSLprefix: string = "precision lowp float;\n";
 
     // compile vertex shader:
@@ -98,15 +98,15 @@ function build_shp(vertexSource: string, fragmentSource: string): WebGLProgram {
     const glAttPosition = _gl.getAttribLocation(glShp, "aat_position");
     _gl.enableVertexAttribArray(glAttPosition);
     return glShp;
-}
+};
 
-function set_shpUniformSource(glShp: WebGLProgram): void {
+const set_shpUniformSource = (glShp: WebGLProgram): void => {
     const glUniformSource = _gl.getUniformLocation(glShp, "uun_source");
     _gl.useProgram(glShp);
     _gl.uniform1i(glUniformSource, 0);
-}
+};
 
-function create_glShps(): void {
+const create_glShps = (): void => {
     const CopyFragmentSource = "varying vec2 vUV;\n\t\t\tuniform sampler2D uun_source;\n\t\t\tvoid main(void){\n\t\t\t\tgl_FragColor = texture2D(uun_source, vUV);\n\t\t\t}";
 
     // image crop Shp:
@@ -119,21 +119,23 @@ function create_glShps(): void {
     // image copy shp:
     _glCopyShp = build_shp("attribute vec2  aat_position;\n\t\t\tvarying vec2 vUV;\n\t\t\tvoid main(void){\n\t\t\t\tgl_Position = vec4(aat_position,0.,1.);\n\t\t\t\tvUV = vec2(0.5,0.5) + 0.5 * aat_position;\n\t\t\t}", CopyFragmentSource);
     set_shpUniformSource(_glCopyShp);
-} //end create_glShps()
+}; //end create_glShps()
 //END WEBGL HELPERS
 
 //BEGIN IMAGECAPTUREAPI HELPERS
-function update_cameraSettings(): void {
+const update_cameraSettings = (): void => {
     _cameraSettings = _imageCapture!["track"]["getSettings"]();
-}
+};
 
-function get_cameraExposureRange(): [number, number] {
+const get_cameraExposureRange = (): [number, number] => {
     const mn: number = _cameraCapabilities[_exposureCompensationKey]["min"];
     const mx: number = _cameraCapabilities[_exposureCompensationKey]["max"];
     return [mn, mx];
-}
+};
 
-function update_cameraExposureNormalized(): void {
+const is_cameraExposureModeManual = (): boolean => _cameraSettings["exposureMode"] === "manual";
+
+const update_cameraExposureNormalized = (): void => {
     if (!is_cameraExposureModeManual()) {
         _cameraExposureNormalized = 0.2;
         return;
@@ -141,9 +143,9 @@ function update_cameraExposureNormalized(): void {
     const mnMx = get_cameraExposureRange(); //[min, max]
     const exposure = _cameraSettings[_exposureCompensationKey];
     _cameraExposureNormalized = (exposure - mnMx[0]) / (mnMx[1] - mnMx[0]);
-}
+};
 
-function set_cameraSetting(setting: string, value: MeteringMode, callback: (val: boolean) => void): void {
+const set_cameraSetting = (setting: string, value: MeteringMode, callback: (val: boolean) => void): void => {
     if (_cameraSettings[setting] === value) { // no need to change camera settings :)
         callback(true);
         return;
@@ -162,9 +164,9 @@ function set_cameraSetting(setting: string, value: MeteringMode, callback: (val:
         update_cameraSettings();
         callback(false);
     });
-}
+};
 
-function set_cameraExposureMode(mode: "AUTO" | "MANUAL", callback: (val: boolean) => void): void {
+const set_cameraExposureMode = (mode: "AUTO" | "MANUAL", callback: (val: boolean) => void): void => {
     if (mode === "AUTO" && _cameraCapabilities["exposureMode"].indexOf("continuous") === -1) {
         callback(false);
         return;
@@ -175,9 +177,9 @@ function set_cameraExposureMode(mode: "AUTO" | "MANUAL", callback: (val: boolean
         _cameraExposureNormalized = 0.2;
     }
     set_cameraSetting("exposureMode", modeCap, callback);
-}
+};
 
-function set_cameraExposure(exposureNormalized: number, callback: (val: boolean) => void) {
+const set_cameraExposure = (exposureNormalized: number, callback: (val: boolean) => void): void => {
     if (_cameraSettings["exposureMode"] !== "manual") {
         console.log("WARNING in JeelizExposureController - set_cameraExposure(): cannot set exposure in continuous mode");
         callback(false);
@@ -193,11 +195,7 @@ function set_cameraExposure(exposureNormalized: number, callback: (val: boolean)
     exposure = step * Math.round(exposure / step);
 
     set_cameraSetting(_exposureCompensationKey, exposure, callback);
-}
-
-function is_cameraExposureModeManual(): boolean {
-    return _cameraSettings["exposureMode"] === "manual";
-}
+};
 
 //END IMAGECAPTUREAPI HELPERS
 
@@ -212,7 +210,11 @@ export const that = {
       * <function> callbackReady: function to launch when the library is ready.
                The callback function is launched with an argument, the error code.
     */
-    "init": function (spec): boolean {
+    "init": (spec: {
+        "callbackReady": (errCode: boolean|string) => void,
+        "videoElement": typeof _video,
+        "subsampleSize": undefined | number
+    }): boolean => {
         // check we can start:
         if (!that["test_compatibility"]()) {
             spec["callbackReady"]("IMAGECAPTUREAPI_NOTFOUND");
@@ -223,7 +225,7 @@ export const that = {
             return false;
         }
         if (typeof (spec["subsampleSize"]) !== "undefined") {
-            _subsampleSize = spec["subsampleSize"];
+            _subsampleSize = spec["subsampleSize"] as number;
         }
         _state = _states.loading;
         _video = spec["videoElement"];
@@ -313,9 +315,9 @@ export const that = {
     <float> relaxationFactor: factor of relaxation, in [0,1]. Advised: 0.1
     <function> callback: function to launch as soon as the lightness is adjusted
     */
-    "adjust": function (glTexture: WebGLTexture | null, area: IArea,
-                        adjustedLightness: number, epsilon: number, relaxationFactor: number,
-                        callback: (val: boolean) => void) {
+    "adjust": (glTexture: WebGLTexture | null, area: IArea,
+               adjustedLightness: number, epsilon: number, relaxationFactor: number,
+               callback: (val: boolean) => void): void => {
         if (_state !== _states.idle) {
             callback(false);
             return;
@@ -361,7 +363,7 @@ export const that = {
 
         //console.log(_cameraExposureNormalized, lightness);
 
-        that["set_manualExposure"](_cameraExposureNormalized, function (isSuccess) {
+        that["set_manualExposure"](_cameraExposureNormalized, (isSuccess: boolean) => {
             _state = _states.idle;
             callback(false);
             //setTimeout(callback.bind(null, false), 1000);    			
@@ -374,11 +376,12 @@ export const that = {
 
     // same than 'adjust' except that the adjustment area is the whole glTexture.
     // the glTexture needs to be in GL.NEAREST_MIPMAP_LINEAR for GL.MIN_FILTER
-    "adjust_full": function (glTexture, adjustedLightness, epsilon, relaxationFactor, callback) {
+    "adjust_full": (glTexture: WebGLTexture | null, adjustedLightness: number, epsilon: number,
+                    relaxationFactor: number, callback: (val: boolean) => void): void => {
         that["adjust"](glTexture, _fullArea, adjustedLightness, epsilon, relaxationFactor, callback);
     },
 
-    "toggle_auto": (callback: (val: boolean) => void) => {
+    "toggle_auto": (callback: (val: boolean) => void): void => {
         set_cameraExposureMode("AUTO", callback);
     },
 
